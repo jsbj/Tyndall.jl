@@ -16,16 +16,16 @@ using FactCheck
 # end
 
 facts("produces fluxes for a given atmospheric condition") do
-    # context("isothermal") do
-    #     ps = [1.013e5i for i=0:1/10:1]
-    #     T = isothermal(300)
-    #     fluxes = flux(T, {:co2 => 400})(ps)
-    #     @fact abs(fluxes[1,2]-5.67e-8 * 300^4) < 4.0 => true
-    # end
+    context("isothermal") do
+        T = isothermal(300)
+        println(OLR(T,400e-6))
+        println(5.67e-8 * 300^4)
+        @fact (abs(OLR(T,400e-6)-5.67e-8 * 300^4) < 1.0) => true
+    end
     
     context("dry adiabat") do
         ps = [1.013e5i for i=0:1/101:1][2:end]
-        T = dry_adiabat_with_strat(300)
+        T = dry_adiabat_with_strat(283.15)
         co2 = 400
         
         # call the Python (which calls the Fortran...)
@@ -37,10 +37,10 @@ facts("produces fluxes for a given atmospheric condition") do
         )
         
         # call the Julia
-        fluxes = flux(T, [:co2 => co2])(ps)
-        println(fluxes[1,2])
+        olr = OLR(T,.0004 * (44/29))
+        println(olr)
         println(getindex(cam3, "lwuflx")[1])
-        @fact abs(fluxes[:up][1] - getindex(cam3, "lwuflx")[1]) < 0.2 => true
+        @fact (abs(olr - getindex(cam3, "lwuflx")[1]) < 1.0) => true
     end
 end
 end
